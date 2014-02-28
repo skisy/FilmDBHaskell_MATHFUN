@@ -51,18 +51,24 @@ testDatabase = [Film "Blade Runner" "Ridley Scott" 1982 [("Amy",6), ("Bill",9), 
 --
 --
 
-showFilm (Film title director year ratings) = "\nTitle: " ++ title ++ "\nDirector: " ++ director ++ "\nYear: " ++ show year ++ "\nRating: " ++ printf "%3.1f" (averageRating ratings)
+showFilm (Film title director year ratings) = "\nTitle: " ++ title ++ "\nDirector: " ++ director ++ "\nYear: " ++ show year ++ "\nRating: " ++ printf "%3.1f" (averageRating (Film title director year ratings))
 
 average xs = sum xs / genericLength xs
 
-averageRating :: [Rating] -> Float
-averageRating ratings = average (map snd ratings)
+--averageRating :: [Rating] -> Float
+--averageRating ratings = average (map snd ratings)
 
+averageRating :: Film -> Float
+averageRating (Film _ _ _ ratings) = average (map snd ratings)
+
+--userRated user = filter (\(Film _ _ _ ratings) -> elem user (fst ratings))
+
+filterUser :: Film -> 
 
 -- i. ADD NEW FILM
 -- ===============
 addFilm :: Title -> Director -> Year -> [Film] -> [Film]
-addFilm title director year oldDB =   oldDB ++ [Film title director year []]
+addFilm title director year oldDB = oldDB ++ [Film title director year []]
 
 -- ii. GIVE ALL FILMS
 -- ==================
@@ -72,23 +78,23 @@ showFilms filmDB = foldr (++) "" (map showFilm filmDB)
 
 -- iii. GIVE ALL FILMS BY DIRECTOR
 -- ===============================
-showDirectorFilms :: [Film] -> Director -> String
-showDirectorFilms filmDB director = showFilms (filter(\(Film _ d _ r) -> d==director) filmDB)
+showDirectorFilms :: [Film] -> Director -> [Film]
+showDirectorFilms filmDB director = filter (\(Film _ d _ _) -> d == director) filmDB
 
 -- iv. GIVE ALL FILMS WITH RATING >= 6
 -- ===================================
 showSixRatedFilms :: [Film] -> String
-showSixRatedFilms filmDB = showFilms (filter(\(Film _ _ _ r) -> averageRating r >= 6) filmDB)
+showSixRatedFilms filmDB = showFilms ([film | film <- filmDB, averageRating film >= 6])
 
 -- v. GIVE AVERAGE RATINGS FOR FILMS BY DIRECTOR
 -- =============================================
---showDirectorAverage :: [Film] -> Director -> String
---showDirectorAverage filmDB director = 
+showDirectorAverage :: [Film] -> Director -> Float
+showDirectorAverage filmDB director = average (map averageRating (showDirectorFilms filmDB director))
 
 -- vi. GIVE TITLES RATED BY USER WITH USERS RATINGS
 -- ================================================
 --showUserRated :: [Film] -> User -> [Film]
---showUserRated filmDB user = filter(\(Film _ _ _ r) -> (snd r) == user) filmDB
+--showUserRated filmDB user = showFilms (filter ((==user).fst) 
 
 -- vii. ALLOW USER TO RATE/RE-RATE FILM
 -- ====================================
@@ -98,7 +104,7 @@ showSixRatedFilms filmDB = showFilms (filter(\(Film _ _ _ r) -> averageRating r 
 --getYearFilms :: [Film] -> Year -> String
 --getYearFilms filmDB year = showFilms (filter(\(Film _ _ y _) -> y>=year) filmDB)              How to get average before printing it in STRING
 
--- Demo function to test basic functionality (without persistence - i.e. 
+-- Demo function to test basic functionality (without persistence - i.e.
 -- testDatabase doesn't change and nothing is saved/loaded to/from file).
 
 --demo :: Int -> IO ()
